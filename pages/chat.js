@@ -192,12 +192,13 @@ function MessageList(props) {
             tag="ul"
             styleSheet={{
                 overflow: 'scroll',
+                overflow: 'auto',
+                scrollbar: 'red',
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,
                 color: appConfig.theme.colors.neutrals["000"],
                 marginBottom: '16px',
-                overflow: 'hidden'
             }}
         >
             {props.mensagens.map((mensagemAtual) => {
