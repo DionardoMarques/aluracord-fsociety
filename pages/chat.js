@@ -5,13 +5,13 @@ import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
 
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseClient = createClient(URL, ANON_KEY)
+// const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+// const supabaseClient = createClient(URL, ANON_KEY)
 
-// const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxOTgyMywiZXhwIjoxOTU4ODk1ODIzfQ.mC3P8S5yP4I6o-VEMjTzTi4cXAOcecLmsRPcy2Uu_LM';
-// const SUPABASE_URL = 'https://mfispprubvnxvgamihqw.supabase.co';
-// const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxOTgyMywiZXhwIjoxOTU4ODk1ODIzfQ.mC3P8S5yP4I6o-VEMjTzTi4cXAOcecLmsRPcy2Uu_LM';
+const SUPABASE_URL = 'https://mfispprubvnxvgamihqw.supabase.co';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function escutaMensagensEmTempoReal(adicionaMensagem) {
     return supabaseClient
