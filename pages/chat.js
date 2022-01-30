@@ -1,13 +1,30 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
-import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxOTgyMywiZXhwIjoxOTU4ODk1ODIzfQ.mC3P8S5yP4I6o-VEMjTzTi4cXAOcecLmsRPcy2Uu_LM';
-const SUPABASE_URL = 'https://mfispprubvnxvgamihqw.supabase.co';
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseClient = createClient(URL, ANON_KEY)
+
+// const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxOTgyMywiZXhwIjoxOTU4ODk1ODIzfQ.mC3P8S5yP4I6o-VEMjTzTi4cXAOcecLmsRPcy2Uu_LM';
+// const SUPABASE_URL = 'https://mfispprubvnxvgamihqw.supabase.co';
+// const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+    return supabaseClient
+        .from('mensagens')
+        .on('INSERT', (respostaLive) => {
+            adicionaMensagem(respostaLive.new);
+        })
+        .subscribe();
+}
 
 export default function ChatPage() {
+    const roteamento = useRouter();
+    const usuarioLogado = roteamento.query.username;
     const [mensagem, setMensagem] = React.useState('');
     const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
 
@@ -17,17 +34,30 @@ export default function ChatPage() {
             .select('*')
             .order('id', { ascending: false })
             .then(({ data }) => {
-                console.log('Dados da consulta:', data);
+                // console.log('Dados da consulta:', data);
                 setListaDeMensagens(data);
             });
+
+        escutaMensagensEmTempoReal((novaMensagem) => {
+            // console.log('Nova mensagem:', novaMensagem);
+            // console.log('listaDeMensagens:', listaDeMensagens);
+            setListaDeMensagens((valorAtualDaLista) => {
+                // console.log('listaDeMensagens:', listaDeMensagens);
+                
+                return [
+                    novaMensagem,
+                    ...valorAtualDaLista,
+                ]
+            });
+        });
     }, []);
 
     function handleNovaMensagem(novaMensagem) {
         const mensagem = {
             // id: listaDeMensagens.length + 1,
-            de: 'dionardomarques',
+            de: usuarioLogado,
             texto: novaMensagem,
-        };
+        }
 
         supabaseClient
             .from('mensagens')
@@ -35,11 +65,7 @@ export default function ChatPage() {
                 mensagem
             ])
             .then(({ data }) => {
-                console.log('Criando mensagem: ', data);
-                setListaDeMensagens([
-                    data[0],
-                    ...listaDeMensagens,
-                ]);
+                // console.log('Criando mensagem: ', data);
             });
 
         setMensagem('');
@@ -128,6 +154,12 @@ export default function ChatPage() {
                                 color: appConfig.theme.colors.neutrals[`000`],
                             }}
                         />
+                        <ButtonSendSticker 
+                            onStickerClick={(sticker) => {
+                                // console.log('[USANDO O COMPONENTE] Salva esse sticker no banco', sticker);
+                                handleNovaMensagem(':sticker:' + sticker);
+                            }}
+                        />
                     </Box>
                 </Box>
             </Box>
@@ -154,7 +186,7 @@ function Header() {
 }
 
 function MessageList(props) {
-    console.log(props.listaDeMensagens);
+    console.log(props);
     return (
         <Box
             tag="ul"
@@ -168,10 +200,10 @@ function MessageList(props) {
                 overflow: 'hidden'
             }}
         >
-            {props.mensagens.map((mensagem) => {
+            {props.mensagens.map((mensagemAtual) => {
                 return (
                     <Text
-                        key={mensagem.id}
+                        key={mensagemAtual.id}
                         tag="li"
                         styleSheet={{
                             borderRadius: '5px',
@@ -195,10 +227,10 @@ function MessageList(props) {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/${mensagem.de}.png`}
+                                src={`https://github.com/${mensagemAtual.de}.png`}
                             />
                             <Text tag="strong">
-                                {mensagem.de}
+                                {mensagemAtual.de}
                             </Text>
                             <Text
                                 styleSheet={{
@@ -211,7 +243,14 @@ function MessageList(props) {
                                 {(new Date().toLocaleDateString())}
                             </Text>
                         </Box>
-                        {mensagem.texto}
+                        {/* {mensagemAtual.texto.startsWith(':sticker:').toString()} */}
+                        {mensagemAtual.texto.startsWith(':sticker:')
+                        ? (
+                            <Image src={mensagemAtual.texto.replace(':sticker:', '')} />
+                        )
+                        : (
+                            mensagemAtual.texto
+                        )}
                     </Text>
                 );
             })}
